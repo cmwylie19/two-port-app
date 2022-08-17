@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: two-port-app
+  name: two-port-app
+spec:
+  containers:
+  - image: cmwylie19/two-port-app
+    name: two-port-app
+    resources: {}
+    ports:
+    - name: http
+      containerPort: 8081
+    - name: http2
+      containerPort: 8082
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    run: two-port-app
+  name: two-port-app
+spec:
+  ports:
+  - name: port-1
+    port: 8081
+    protocol: TCP
+    targetPort: 8081
+  - name: port-2
+    port: 8082
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    run: two-port-app
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  creationTimestamp: null
+  labels:
+    run: port-one
+  name: port-one
+spec:
+  port:
+    targetPort: port-1
+  to:
+    kind: Service
+    name: two-port-app
+    weight: null
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  creationTimestamp: null
+  labels:
+    run: port-two
+  name: port-two
+spec:
+  port:
+    targetPort: port-2
+  to:
+    kind: Service
+    name: two-port-app
+    weight: null
